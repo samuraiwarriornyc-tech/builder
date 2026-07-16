@@ -142,6 +142,73 @@ jobs:
             exit 1
           fi
 
+      - name: Verify ATBM6012B driver
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CONFIG="openipc/output/.config"
+
+          echo "=== Checking final Buildroot configuration ==="
+          grep -qx 'BR2_PACKAGE_ATBM_WIFI=y' "$CONFIG"
+          grep -qx 'BR2_PACKAGE_ATBM_WIFI_MODEL_6012B=y' "$CONFIG"
+          grep -qx 'BR2_PACKAGE_ATBM_WIFI_INTERFACE_USB=y' "$CONFIG"
+
+          if grep -q '^BR2_PACKAGE_ATBM60XX=y' "$CONFIG"; then
+              echo "::error::Legacy BR2_PACKAGE_ATBM60XX is still enabled"
+              exit 1
+          fi
+
+          echo "=== Checking target kernel module ==="
+          MODULE="$(find openipc/output/target/lib/modules \
+              -type f \
+              -name 'atbm6012b_wifi_usb.ko*' \
+              -print -quit)"
+
+          if [ -z "$MODULE" ]; then
+              echo "::error::atbm6012b_wifi_usb.ko was not installed"
+              exit 1
+          fi
+
+          echo "Found module: $MODULE"
+          ls -lh "$MODULE"
+
+          echo "=== Checking wireless loader ==="
+          grep -q 'atbm6012b-generic-usb' \
+              openipc/output/target/etc/wireless/usb
+
+          grep -q 'modprobe atbm6012b_wifi_usb' \
+              openipc/output/target/etc/wireless/usb
+
+          echo "=== Checking customizer ==="
+          grep -q 'fw_setenv wlandev atbm6012b-generic-usb' \
+              openipc/output/target/usr/share/openipc/customizer.sh
+
+          echo "=== Checking final SquashFS ==="
+          ROOTFS="$(find openipc/output/images \
+              -maxdepth 1 \
+              -type f \
+              -name 'rootfs.squashfs*' \
+              -print -quit)"
+
+          if [ -z "$ROOTFS" ]; then
+              echo "::error::SquashFS image was not found"
+              exit 1
+          fi
+
+          echo "Rootfs image: $ROOTFS"
+
+          openipc/output/host/bin/unsquashfs -ll "$ROOTFS" \
+              > /tmp/rootfs-contents.txt
+
+          if ! grep -q 'atbm6012b_wifi_usb\.ko' \
+              /tmp/rootfs-contents.txt; then
+              echo "::error::ATBM6012B module is not inside SquashFS"
+              exit 1
+          fi
+
+          echo "ATBM6012B verification passed"
+
       - name: Upload firmware
         if: env.NORFW || env.NANDFW
         uses: softprops/action-gh-release@v2
