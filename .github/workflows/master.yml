@@ -324,6 +324,14 @@ jobs:
             mv ${SIZES} ../sizes.${NAME}.json
             echo "SIZES=sizes.${NAME}.json" >> ${GITHUB_ENV}
           fi
+          
+      - name: Save Firmware Bundles on Fork
+        uses: actions/upload-artifact@v4
+        with:
+          name: openipc-firmware-${{ github.event.inputs.board }}
+          path: |
+            *.tgz
+            output/images/openipc*
 
       - name: Upload firmware (dated)
         if: env.NORFW || env.NANDFW
