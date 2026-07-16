@@ -48,6 +48,10 @@ jobs:
     needs: preflight
     if: needs.preflight.outputs.should_build == 'true'
     runs-on: ubuntu-latest
+    permissions:
+     contents: write
+
+      
     env:
       BUILD_ID:       ${{ needs.preflight.outputs.build_id }}
       BUILD_SHA:      ${{ needs.preflight.outputs.head_sha }}
