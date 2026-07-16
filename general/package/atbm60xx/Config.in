@@ -1,0 +1,43 @@
+config BR2_PACKAGE_ATBM60XX
+	bool "atbm60xx"
+	depends on BR2_LINUX_KERNEL
+	help
+	  AltoBeam atbm60xx series wireless network driver.
+
+if BR2_PACKAGE_ATBM60XX
+
+choice
+	prompt "AltoBeam Chip Model"
+	default BR2_PACKAGE_ATBM60XX_MODEL_601X
+	help
+	  Select the AltoBeam wireless chip hardware generation.
+
+config BR2_PACKAGE_ATBM60XX_MODEL_601X
+	bool "601x / 603x"
+
+config BR2_PACKAGE_ATBM60XX_MODEL_602X
+	bool "602x"
+endchoice
+
+choice
+	prompt "Interface Type"
+	default BR2_PACKAGE_ATBM60XX_INTERFACE_USB
+	help
+	  Select physical hardware bus linkage protocol.
+
+config BR2_PACKAGE_ATBM60XX_INTERFACE_USB
+	bool "USB"
+
+config BR2_PACKAGE_ATBM60XX_INTERFACE_SDIO
+	bool "SDIO"
+endchoice
+
+config BR2_PACKAGE_ATBM60XX_USB_PID
+	string "USB Product ID (PID)"
+	default "0x6000"
+	depends on BR2_PACKAGE_ATBM60XX_INTERFACE_USB
+
+endif
+
+comment "atbm60xx needs a Linux kernel to be built"
+	depends on !BR2_LINUX_KERNEL
