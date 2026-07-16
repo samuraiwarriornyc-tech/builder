@@ -1,0 +1,3 @@
+# ... (Base64 encoded configuration)
+BR2_PACKAGE_ATBM60XX=y
+# ...
