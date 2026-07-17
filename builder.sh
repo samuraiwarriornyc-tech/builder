@@ -176,7 +176,7 @@ text = path.read_text()
 pattern = r'^HISILICON_OPENSDK_SENSORS_gk7205v200\s*=.*$'
 replacement = (
     'HISILICON_OPENSDK_SENSORS_gk7205v200 = '
-    'soi_h63/libsns_h63'
+    'galaxycore_gc2053/libsns_gc2053'
 )
 
 updated, count = re.subn(
@@ -193,11 +193,11 @@ if count != 1:
     )
 
 path.write_text(updated)
-print("Patched GK7205V200 sensor list: only soi_h63/libsns_h63")
+print("Patched GK7205V200 sensor list: only galaxycore_gc2053/libsns_gc2053")
 PYFIX
 
     grep -Fqx \
-        'HISILICON_OPENSDK_SENSORS_gk7205v200 = soi_h63/libsns_h63' \
+        'HISILICON_OPENSDK_SENSORS_gk7205v200 = galaxycore_gc2053/libsns_gc2053' \
         "$OPENSDK_MK" || {
             echo_c 31 "ERROR: H63 package patch did not apply"
             exit 1

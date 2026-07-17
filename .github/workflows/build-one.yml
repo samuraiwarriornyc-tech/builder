@@ -145,7 +145,7 @@ jobs:
             exit 1
           fi
 
-      - name: Verify ATBM6012B and JXH63
+      - name: Verify ATBM6012B and GC2053
         shell: bash
         run: |
           set -euo pipefail
@@ -210,20 +210,20 @@ jobs:
               exit 1
           fi
 
-          echo "=== Checking board-specific JXH63 sensor selection ==="
+          echo "=== Checking board-specific GC2053 sensor selection ==="
 
           OPENSDK_MK="openipc/general/package/hisilicon-opensdk/hisilicon-opensdk.mk"
 
           grep -Fqx \
-            'HISILICON_OPENSDK_SENSORS_gk7205v200 = soi_h63/libsns_h63' \
+            'HISILICON_OPENSDK_SENSORS_gk7205v200 = galaxycore_gc2053/libsns_gc2053' \
             "$OPENSDK_MK"
 
-          echo "=== Checking JXH63 sensor library ==="
+          echo "=== Checking GC2053 sensor library ==="
 
-          SENSOR_LIB="openipc/output/target/usr/lib/sensors/libsns_h63.so"
+          SENSOR_LIB="openipc/output/target/usr/lib/sensors/libsns_gc2053.so"
 
           if [ ! -s "$SENSOR_LIB" ]; then
-              echo "::error::libsns_h63.so was not installed"
+              echo "::error::libsns_gc2053.so was not installed"
               exit 1
           fi
 
@@ -232,7 +232,7 @@ jobs:
 
           if ! grep -q 'usr/lib/sensors/libsns_h63\.so' \
               /tmp/rootfs-contents.txt; then
-              echo "::error::libsns_h63.so is not inside SquashFS"
+              echo "::error::libsns_gc2053.so is not inside SquashFS"
               exit 1
           fi
 
@@ -247,7 +247,7 @@ jobs:
               exit 1
           fi
 
-          echo "ATBM6012B and JXH63 verification passed"
+          echo "ATBM6012B and GC2053 verification passed"
 
       - name: Upload firmware
         if: env.NORFW || env.NANDFW
