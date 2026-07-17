@@ -187,6 +187,9 @@ jobs:
           grep -q 'fw_setenv wlandev atbm6012b-generic-usb' \
               openipc/output/target/usr/share/openipc/customizer.sh
 
+          grep -q 'fw_setenv sensor gc2053_i2c_1080p' \
+              openipc/output/target/usr/share/openipc/customizer.sh
+
           echo "=== Checking final SquashFS ==="
           ROOTFS="$(find openipc/output/images \
               -maxdepth 1 \
@@ -222,7 +225,6 @@ jobs:
 
           GC2053_FILES=(
             "/etc/sensors/gc2053_i2c_1080p.ini"
-            "/etc/sensors/iq/gc2053.ini"
             "/usr/lib/sensors/libsns_gc2053.so"
           )
 
