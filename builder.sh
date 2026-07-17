@@ -153,6 +153,58 @@ copy_extra_packages
 echo_c 33 "\nCopying device files"
 cp -afv ${BUILDER_DIR}/${ITEM}/* ${FIRMWARE_DIR}
 
+
+echo_c 33 "\nApplying board-specific package selection"
+
+if [ "${DEVICE}" = "gk7202v300_lite_ipg-g3-wr" ]; then
+    OPENSDK_MK="${FIRMWARE_DIR}/general/package/hisilicon-opensdk/hisilicon-opensdk.mk"
+
+    if [ ! -f "$OPENSDK_MK" ]; then
+        echo_c 31 "ERROR: OpenSDK package file was not found:"
+        echo "$OPENSDK_MK"
+        exit 1
+    fi
+
+    python3 - "$OPENSDK_MK" <<'PYFIX' || exit 1
+from pathlib import Path
+import re
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+
+pattern = r'^HISILICON_OPENSDK_SENSORS_gk7205v200\s*=.*$'
+replacement = (
+    'HISILICON_OPENSDK_SENSORS_gk7205v200 = '
+    'soi_h63/libsns_h63'
+)
+
+updated, count = re.subn(
+    pattern,
+    replacement,
+    text,
+    count=1,
+    flags=re.MULTILINE,
+)
+
+if count != 1:
+    raise SystemExit(
+        f"ERROR: GK7205V200 sensor-list line was not found in {path}"
+    )
+
+path.write_text(updated)
+print("Patched GK7205V200 sensor list: only soi_h63/libsns_h63")
+PYFIX
+
+    grep -Fqx \
+        'HISILICON_OPENSDK_SENSORS_gk7205v200 = soi_h63/libsns_h63' \
+        "$OPENSDK_MK" || {
+            echo_c 31 "ERROR: H63 package patch did not apply"
+            exit 1
+        }
+fi
+
+
 echo_c 33 "\nBuilding the device"
 make BOARD=${DEVICE}
 

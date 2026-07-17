@@ -145,7 +145,7 @@ jobs:
             exit 1
           fi
 
-      - name: Verify ATBM6012B driver
+      - name: Verify ATBM6012B and JXH63
         shell: bash
         run: |
           set -euo pipefail
@@ -210,7 +210,44 @@ jobs:
               exit 1
           fi
 
-          echo "ATBM6012B verification passed"
+          echo "=== Checking board-specific JXH63 sensor selection ==="
+
+          OPENSDK_MK="openipc/general/package/hisilicon-opensdk/hisilicon-opensdk.mk"
+
+          grep -Fqx \
+            'HISILICON_OPENSDK_SENSORS_gk7205v200 = soi_h63/libsns_h63' \
+            "$OPENSDK_MK"
+
+          echo "=== Checking JXH63 sensor library ==="
+
+          SENSOR_LIB="openipc/output/target/usr/lib/sensors/libsns_h63.so"
+
+          if [ ! -s "$SENSOR_LIB" ]; then
+              echo "::error::libsns_h63.so was not installed"
+              exit 1
+          fi
+
+          echo "Found sensor library: $SENSOR_LIB"
+          ls -lh "$SENSOR_LIB"
+
+          if ! grep -q 'usr/lib/sensors/libsns_h63\.so' \
+              /tmp/rootfs-contents.txt; then
+              echo "::error::libsns_h63.so is not inside SquashFS"
+              exit 1
+          fi
+
+          ROOTFS_SIZE="$(stat -c '%s' "$ROOTFS")"
+          ROOTFS_LIMIT="$((5120 * 1024))"
+
+          echo "Rootfs size:  $ROOTFS_SIZE bytes"
+          echo "Rootfs limit: $ROOTFS_LIMIT bytes"
+
+          if [ "$ROOTFS_SIZE" -gt "$ROOTFS_LIMIT" ]; then
+              echo "::error::Rootfs exceeds the 5120 KiB partition"
+              exit 1
+          fi
+
+          echo "ATBM6012B and JXH63 verification passed"
 
       - name: Upload firmware
         if: env.NORFW || env.NANDFW
