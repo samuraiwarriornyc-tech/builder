@@ -218,15 +218,37 @@ jobs:
             'HISILICON_OPENSDK_SENSORS_gk7205v200 = galaxycore_gc2053/libsns_gc2053' \
             "$OPENSDK_MK"
 
-          echo "=== Checking GC2053 sensor library ==="
+           echo "=== Checking GC2053 sensor runtime files ==="
 
-          SENSOR_LIB="openipc/output/target/usr/lib/sensors/libsns_gc2053.so"
+          GC2053_FILES=(
+            "/etc/sensors/gc2053_i2c_1080p.ini"
+            "/etc/sensors/iq/gc2053.ini"
+            "/usr/lib/sensors/libsns_gc2053.so"
+          )
 
-          if [ ! -s "$SENSOR_LIB" ]; then
-              echo "::error::libsns_gc2053.so was not installed"
-              exit 1
-          fi
+          for FILE in "${GC2053_FILES[@]}"; do
+              TARGET_FILE="openipc/output/target${FILE}"
 
+              if [ ! -s "$TARGET_FILE" ]; then
+                  echo "::error::Required GC2053 file was not installed: $FILE"
+                  exit 1
+              fi
+
+              echo "Found: $TARGET_FILE"
+              ls -lh "$TARGET_FILE"
+          done
+
+          echo "=== Ensuring GC2053 is not removed by Lite exclusions ==="
+
+          EXCLUDES="devices/gk7202v300_lite_ipg-g3-wr/general/scripts/excludes/gk7202v300_lite.list"
+
+          for FILE in "${GC2053_FILES[@]}"; do
+              if grep -Fqx "$FILE" "$EXCLUDES"; then
+                  echo "::error::Required GC2053 file is still excluded: $FILE"
+                  exit 1
+              fi
+          done
+          
           echo "Found sensor library: $SENSOR_LIB"
           ls -lh "$SENSOR_LIB"
 
@@ -235,6 +257,17 @@ jobs:
               echo "::error::libsns_gc2053.so is not inside SquashFS"
               exit 1
           fi
+          echo "=== Checking GC2053 files inside final SquashFS ==="
+
+          for FILE in "${GC2053_FILES[@]}"; do
+              IMAGE_PATH="${FILE#/}"
+
+              if ! grep -q "$IMAGE_PATH" /tmp/rootfs-contents.txt; then
+                  echo "::error::$FILE is not inside the final SquashFS"
+                  exit 1
+              fi
+          done
+
 
           ROOTFS_SIZE="$(stat -c '%s' "$ROOTFS")"
           ROOTFS_LIMIT="$((5120 * 1024))"
