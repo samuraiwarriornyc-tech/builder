@@ -223,6 +223,8 @@ jobs:
 
            echo "=== Checking GC2053 sensor runtime files ==="
 
+          GC2053_LIB="openipc/output/target/usr/lib/sensors/libsns_gc2053.so"
+
           GC2053_FILES=(
             "/etc/sensors/gc2053_i2c_1080p.ini"
             "/usr/lib/sensors/libsns_gc2053.so"
@@ -251,8 +253,8 @@ jobs:
               fi
           done
           
-          echo "Found sensor library: $SENSOR_LIB"
-          ls -lh "$SENSOR_LIB"
+          echo "Found sensor library: $GC2053_LIB"
+          ls -lh "$GC2053_LIB"
 
           if ! grep -q 'usr/lib/sensors/libsns_h63\.so' \
               /tmp/rootfs-contents.txt; then
